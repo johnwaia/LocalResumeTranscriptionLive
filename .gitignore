@@ -1,0 +1,71 @@
+# ------------ ENVIRONNEMENT PYTHON ------------
+venv/
+.env
+env/
+.env.*
+
+# ------------ MODÈLES & DONNÉES LOURDES ------------
+# Dossier où tu ranges les modèles Vosk
+vosk-model-*/
+vosk_model*/
+vosk-model-fr/
+vosk-model-small-fr*/
+vosk-model-large-fr*/
+
+# Si tu as d'autres modèles IA, on ignore aussi
+*.onnx
+*.bin
+*.pth
+*.pt
+
+# ------------ CACHE PYTHON ------------
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pdb
+*.egg-info/
+.cache/
+.pytest_cache/
+
+# ------------ LOGS ------------
+*.log
+logs/
+
+# ------------ BUILD / DIST ------------
+dist/
+build/
+*.egg
+*.eggs
+wheelhouse/
+
+# ------------ FLASK / TEMP ------------
+instance/
+*.sqlite
+*.db
+
+# ------------ NODE / WEB (au cas où) ------------
+node_modules/
+npm-debug.log
+yarn-debug.log*
+yarn-error.log*
+
+# ------------ MACOS ------------
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+
+# ------------ ÉDITEURS ------------
+# VSCode
+.vscode/
+*.code-workspace
+
+# JetBrains
+.idea/
+
+# ------------ DIVERS ------------
+*.bak
+*.tmp
+*.swp

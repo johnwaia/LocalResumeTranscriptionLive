@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Résumé en temps réel (Vosk + Ollama)</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <div class="app-container">
+    <h1>🎙️ Résumé en temps réel (Vosk + Ollama)</h1>
+
+    <div class="toolbar">
+      <button id="start-session">Démarrer la session</button>
+      <button id="stop-session">Terminer la session</button>
+    </div>
+
+    <section class="panel">
+      <h2>🟡 Parole en cours</h2>
+      <div id="partial" class="box"></div>
+    </section>
+
+    <section class="panel">
+      <h2>📝 Transcription</h2>
+      <div id="transcript" class="box"></div>
+    </section>
+
+    <section class="panel">
+      <h2>📌 Résumé</h2>
+      <div id="summary" class="box summary-box">
+        <h3 id="summary-title" class="summary-title"></h3>
+        <p id="summary-subtitle" class="summary-subtitle"></p>
+        <ul id="summary-list" class="summary-list"></ul>
+      </div>
+    </section>
+  </div>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+
+</html>
