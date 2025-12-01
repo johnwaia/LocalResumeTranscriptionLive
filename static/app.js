@@ -26,29 +26,38 @@ source.onmessage = (event) => {
 };
 
 
-// ---- Boutons ----
+// --------- MODAL LOGIQUE ---------
+const modal = document.getElementById("model-modal");
+const confirmBtn = document.getElementById("confirm-model");
+const modalSelect = document.getElementById("modal-model-select");
 
+// Empêche l'utilisateur de démarrer avant choix modèle
 document.getElementById("start-session").disabled = true;
 
-// Choix du modèle => active le bouton démarrer
-document.getElementById("model-select").onchange = async (e) => {
+// User valide modèle
+confirmBtn.onclick = async () => {
+  const model = modalSelect.value;
+
   await fetch("/model/set", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ model: e.target.value }),
+    body: JSON.stringify({ model }),
   });
 
-  console.log("🟢 Modèle prêt → vous pouvez démarrer");
+  console.log(`🟢 Modèle sélectionné: ${model}`);
+
+  modal.style.display = "none";  
   document.getElementById("start-session").disabled = false;
 };
 
-// 🚀 Bouton Démarrer Session (MANQUANT AVANT)
+
+// --------- BOUTONS ---------
+
 document.getElementById("start-session").onclick = async () => {
   await fetch("/session/start", { method: "POST" });
   console.log("🎤 Session démarrée !");
 };
 
-// Bouton Stop Session
 document.getElementById("stop-session").onclick = async () => {
   await fetch("/session/stop", { method: "POST" });
   console.log("🛑 Session stoppée !");

@@ -13,12 +13,6 @@
 <div class="toolbar">
   <button id="start-session">▶️ Démarrer</button>
   <button id="stop-session">⛔ Stop</button>
-
-  <select id="model-select">
-    <option value="vosk-model-small-fr">Modèle léger</option>
-    <option value="vosk-model-large-fr" selected>Modèle complet</option>
-  </select>
-
   <button id="download-summary">📥 Télécharger Résumé</button>
 </div>
 
@@ -48,6 +42,22 @@
   </div>
 
 </div>
+
+<!-- Popup sélection du modèle -->
+<div id="model-modal" class="modal">
+  <div class="modal-content">
+    <h2>🎤 Sélection du modèle Vosk</h2>
+    <p>Choisissez le modèle de transcription à utiliser :</p>
+
+    <select id="modal-model-select">
+      <option value="vosk-model-small-fr">Modèle léger (rapide)</option>
+      <option value="vosk-model-large-fr">Modèle complet (plus précis)</option>
+    </select>
+
+    <button id="confirm-model">✅ Valider</button>
+  </div>
+</div>
+
 
 <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
