@@ -1,60 +1,215 @@
+/* ===========================
+   🎨 THEME & BASE STYLES
+=========================== */
+:root {
+  --bg: #f3f5f7;
+  --panel: rgba(255,255,255,0.7);
+  --border: rgba(0,0,0,0.08);
+  --accent: #4b7cff;
+  --danger: #ff4f4f;
+  --text: #2d2d2d;
+  --radius: 14px;
+}
+
 body {
-  font-family: Arial, sans-serif;
-  margin: 20px;
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Inter", sans-serif;
 }
 
-.toolbar {
+/* ===========================
+   🧭 HEADER
+=========================== */
+.header {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 25px;
+  background: white;
+  border-bottom: 1px solid #e5e9f0;
+  font-size: 18px;
+  font-weight: 600;
 }
 
-.layout {
+.actions .btn {
+  margin-left: 10px;
+}
+
+/* ===========================
+   🧩 BUTTONS
+=========================== */
+.btn {
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  transition: 0.2s;
+}
+
+.btn.primary {
+  background: var(--accent);
+  color: white;
+}
+
+.btn.subtle {
+  background: transparent;
+  border: 2px solid var(--accent);
+  color: var(--accent);
+}
+
+.btn.danger {
+  background: var(--danger);
+  color: white;
+}
+
+.btn:hover {
+  opacity: 0.85;
+}
+
+.btn.full {
+  width: 100%;
+  margin-top: 14px;
+}
+
+/* ===========================
+   📐 GRID LAYOUT
+=========================== */
+.grid {
+  max-width: 1400px;
+  margin: auto;
+  padding: 25px;
   display: grid;
-  grid-template-columns: 50% 50%;
-  gap: 15px;
+  gap: 20px;
+
+  /* 🧠 Nouvelle disposition : résumé à droite */
+  grid-template-columns: 2fr 1.3fr;
+  grid-template-rows: auto 1fr;
 }
 
-.box, .summary-box {
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  padding: 10px;
-  min-height: 120px;
-  background: #fafafa;
+/* Résumé occupe toute la hauteur */
+.panel.summary {
+  grid-row: span 2;
+  border-left: 2px solid rgba(0,0,0,0.08);
+  padding-left: 24px;
+}
+
+/* ===========================
+   🪟 PANELS
+=========================== */
+.panel {
+  border-radius: var(--radius);
+  padding: 20px;
+}
+
+.glass {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(10px);
+  box-shadow: 0px 6px 20px rgba(0,0,0,0.06);
+}
+
+.panel h2 {
+  margin-top: 0;
+}
+
+/* ===========================
+   📝 CONTENT SECTIONS
+=========================== */
+.content {
+  background: white;
+  margin-top: 12px;
+  padding: 12px;
+  min-height: 100px;
+  border-radius: var(--radius);
+  border: 1px solid #e1e1e1;
   overflow-y: auto;
 }
+
+/* ===========================
+   📌 SUMMARY DESIGN
+=========================== */
+#summary {
+  margin-top: 12px;
+}
+
+.summary-title {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.summary-subtitle {
+  opacity: 0.65;
+  margin-bottom: 10px;
+}
+
+#summary-list li {
+  background: #eef2ff;
+  padding: 8px;
+  border-radius: 10px;
+  margin-bottom: 6px;
+}
+
+/* ===========================
+   🔳 MODAL
+=========================== */
 .modal {
   position: fixed;
-  top: 0;
+  top: 0; 
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0,0,0,0.65);
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-box {
+  background: white;
+  padding: 28px;
+  width: 360px;
+  border-radius: var(--radius);
+  text-align: center;
+}
+
+.modal-box select {
+  width: 100%;
+  padding: 12px;
+  margin-top: 14px;
+  font-size: 16px;
+  border-radius: var(--radius);
+}
+
+/* ===========================
+   ⏳ LOADING SCREEN
+=========================== */
+.loading-overlay {
+  position: fixed;
+  top: 0; 
+  left: 0;
+  width: 100vw; 
+  height: 100vh;
+  background: rgba(255,255,255,0.92);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 999;
+  z-index: 2000;
+  backdrop-filter: blur(6px);
 }
 
-.modal-content {
-  background: white;
-  padding: 25px;
-  border-radius: 10px;
-  width: 350px;
-  text-align: center;
-  box-shadow: 0px 4px 15px rgba(0,0,0,0.3);
+.spinner {
+  width: 55px;
+  height: 55px;
+  border: 6px solid #d1d5db;
+  border-top: 6px solid var(--accent);
+  border-radius: 50%;
+  animation: spin 1s infinite linear;
 }
 
-.modal-content select {
-  width: 100%;
-  padding: 10px;
-  margin: 15px 0;
-  font-size: 16px;
-}
-
-.modal-content button {
-  margin-top: 15px;
-  padding: 10px 15px;
-  cursor: pointer;
-  font-size: 16px;
+@keyframes spin {
+  0% { transform: rotate(0); }
+  100% { transform: rotate(360deg); }
 }
