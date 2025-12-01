@@ -6,9 +6,7 @@ env/
 
 # ------------ MODÈLES & DONNÉES LOURDES ------------
 # Dossier où tu ranges les modèles Vosk
-vosk-model-*/
-vosk_model*/
-vosk-model-fr/
+
 vosk-model-small-fr*/
 vosk-model-large-fr*/
 

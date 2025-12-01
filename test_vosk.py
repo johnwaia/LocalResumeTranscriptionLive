@@ -3,7 +3,7 @@ import json
 import sounddevice as sd
 from vosk import Model, KaldiRecognizer
 
-MODEL_PATH = "vosk-model-fr"  # dossier du modèle FR
+MODEL_PATH = "vosk-model-large-fr"  # dossier du modèle FR
 
 
 def main():

@@ -1,138 +1,69 @@
-// static/app.js
-document.addEventListener("DOMContentLoaded", () => {
-  // --- Références DOM --- //
-  const partialEl = document.getElementById("partial");
-  const transcriptEl = document.getElementById("transcript");
-  const summaryTitleEl = document.getElementById("summary-title");
-  const summarySubtitleEl = document.getElementById("summary-subtitle");
-  const summaryListEl = document.getElementById("summary-list");
-  const startBtn = document.getElementById("start-session");
-  const stopBtn = document.getElementById("stop-session");
+const source = new EventSource("/stream");
 
-  // --- État côté front --- //
-  let currentTranscript = "";
-  let structuredSummary = {
-    title: "",
-    subtitle: "",
-    bullets: [],
-  };
-  let currentTags = []; // [{label, type}, ...]
+const partialBox = document.getElementById("partial");
+const transcriptBox = document.getElementById("transcript");
+const titleBox = document.getElementById("summary-title");
+const subtitleBox = document.getElementById("summary-subtitle");
+const listBox = document.getElementById("summary-list");
 
-  // --- Helpers pour surligner les mots-clés --- //
-  function escapeHtml(str) {
-    return str
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
-  }
+source.onmessage = (event) => {
+  const data = JSON.parse(event.data);
 
-  function escapeRegExp(str) {
-    return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  }
+  if (data.type === "partial") partialBox.innerText = data.text;
+  if (data.type === "transcript") transcriptBox.innerText = data.text;
 
-  function highlightWithTags(text) {
-    if (!text) return "";
-    let html = escapeHtml(text);
-
-    currentTags.forEach((tag) => {
-      const label = tag.label || "";
-      if (!label) return;
-
-      const pattern = new RegExp("\\b(" + escapeRegExp(label) + ")\\b", "gi");
-      html = html.replace(
-        pattern,
-        '<span class="keyword-span">$1</span>'
-      );
-    });
-
-    return html;
-  }
-
-  // --- Fonctions de rendu --- //
-  function renderTranscript() {
-    if (!transcriptEl) return;
-    transcriptEl.innerHTML = highlightWithTags(currentTranscript);
-  }
-
-  function renderStructuredSummary() {
-    if (!summaryTitleEl || !summarySubtitleEl || !summaryListEl) return;
-
-    const title = structuredSummary.title || "Résumé de la conversation";
-    const subtitle = structuredSummary.subtitle || "";
-    const bullets = structuredSummary.bullets || [];
-
-    summaryTitleEl.innerHTML = highlightWithTags(title);
-    summarySubtitleEl.innerHTML = highlightWithTags(subtitle);
-
-    summaryListEl.innerHTML = "";
-    bullets.forEach((b) => {
+  if (data.type === "summary_structured") {
+    const s = data.summary;
+    titleBox.innerText = s.title;
+    subtitleBox.innerText = s.subtitle;
+    listBox.innerHTML = "";
+    s.bullets.forEach(b => {
       const li = document.createElement("li");
-      li.innerHTML = highlightWithTags(b);
-      summaryListEl.appendChild(li);
+      li.innerText = b;
+      listBox.appendChild(li);
     });
   }
+};
 
-  // --- SSE : événements backend --- //
-  const source = new EventSource("/stream");
 
-  source.onmessage = (event) => {
-    try {
-      const data = JSON.parse(event.data);
+// ---- Boutons ----
 
-      if (data.type === "partial") {
-        if (partialEl) partialEl.textContent = data.text || "";
+document.getElementById("start-session").disabled = true;
 
-      } else if (data.type === "transcript_live" || data.type === "transcript") {
-        currentTranscript = data.text || "";
-        renderTranscript();
+// Choix du modèle => active le bouton démarrer
+document.getElementById("model-select").onchange = async (e) => {
+  await fetch("/model/set", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ model: e.target.value }),
+  });
 
-      } else if (data.type === "summary_structured") {
-        structuredSummary = data.summary || structuredSummary;
-        renderStructuredSummary();
+  console.log("🟢 Modèle prêt → vous pouvez démarrer");
+  document.getElementById("start-session").disabled = false;
+};
 
-      } else if (data.type === "tags") {
-        currentTags = data.tags || [];
-        // re-render transcript + summary avec les nouveaux mots-clés
-        renderTranscript();
-        renderStructuredSummary();
+// 🚀 Bouton Démarrer Session (MANQUANT AVANT)
+document.getElementById("start-session").onclick = async () => {
+  await fetch("/session/start", { method: "POST" });
+  console.log("🎤 Session démarrée !");
+};
 
-      } else if (data.type === "session") {
-        if (data.status === "started") {
-          if (partialEl) partialEl.textContent = "";
-          currentTranscript = "";
-          structuredSummary = { title: "", subtitle: "", bullets: [] };
-          currentTags = [];
-          renderTranscript();
-          renderStructuredSummary();
-        }
-      }
-    } catch (e) {
-      console.error("Erreur parsing event:", e);
-    }
-  };
+// Bouton Stop Session
+document.getElementById("stop-session").onclick = async () => {
+  await fetch("/session/stop", { method: "POST" });
+  console.log("🛑 Session stoppée !");
+};
 
-  source.onerror = (err) => {
-    console.error("Erreur EventSource:", err);
-  };
 
-  // --- Boutons start / stop --- //
-  if (startBtn) {
-    startBtn.addEventListener("click", async () => {
-      try {
-        await fetch("/session/start", { method: "POST" });
-      } catch (e) {
-        console.error("Erreur start session:", e);
-      }
-    });
-  }
+// ---- Download résumé ----
+document.getElementById("download-summary").onclick = () => {
+  const text =
+    `${titleBox.innerText}\n${subtitleBox.innerText}\n\n` +
+    [...listBox.querySelectorAll("li")].map(li => "- " + li.innerText).join("\n");
 
-  if (stopBtn) {
-    stopBtn.addEventListener("click", async () => {
-      try {
-        await fetch("/session/stop", { method: "POST" });
-      } catch (e) {
-        console.error("Erreur stop session:", e);
-      }
-    });
-  }
-});
+  const blob = new Blob([text], { type: "text/plain" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "resume.txt";
+  link.click();
+};

@@ -93,6 +93,7 @@ pip install flask
 pip install flask_cors
 pip install pywin32
 pip install requests
+pip install numpy
 ```
 
 ---
@@ -118,8 +119,14 @@ ollama pull llama3
 python main.py
 ```
 
-3. Ouvrir le navigateur sur [http://localhost:5000](http://localhost:5000).  
-4. Démarrer une session vocale pour créer la fiche projet en temps réel.
+3. Démarre le service backend d’Ollama:
+```
+ollama serve
+```
+
+4. Ouvrir le navigateur sur [http://localhost:5000](http://localhost:5000).  
+
+5. Démarrer une session vocale pour créer la fiche projet en temps réel.
 
 ---
 

@@ -2,39 +2,53 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Résumé en temps réel (Vosk + Ollama)</title>
+  <title>Résumé en temps réel</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
 </head>
+
 <body>
-  <div class="app-container">
-    <h1>🎙️ Résumé en temps réel (Vosk + Ollama)</h1>
 
-    <div class="toolbar">
-      <button id="start-session">Démarrer la session</button>
-      <button id="stop-session">Terminer la session</button>
-    </div>
+<h1>🎙️ Résumé en temps réel</h1>
 
-    <section class="panel">
+<div class="toolbar">
+  <button id="start-session">▶️ Démarrer</button>
+  <button id="stop-session">⛔ Stop</button>
+
+  <select id="model-select">
+    <option value="vosk-model-small-fr">Modèle léger</option>
+    <option value="vosk-model-large-fr" selected>Modèle complet</option>
+  </select>
+
+  <button id="download-summary">📥 Télécharger Résumé</button>
+</div>
+
+<div class="layout">
+
+  <div class="left">
+    <section>
       <h2>🟡 Parole en cours</h2>
       <div id="partial" class="box"></div>
     </section>
 
-    <section class="panel">
+    <section>
       <h2>📝 Transcription</h2>
       <div id="transcript" class="box"></div>
     </section>
+  </div>
 
-    <section class="panel">
-      <h2>📌 Résumé</h2>
-      <div id="summary" class="box summary-box">
-        <h3 id="summary-title" class="summary-title"></h3>
-        <p id="summary-subtitle" class="summary-subtitle"></p>
-        <ul id="summary-list" class="summary-list"></ul>
+  <div class="right">
+    <section>
+      <h2>📌 Résumé généré</h2>
+      <div id="summary" class="summary-box">
+        <h3 id="summary-title"></h3>
+        <p id="summary-subtitle"></p>
+        <ul id="summary-list"></ul>
       </div>
     </section>
   </div>
 
-  <script src="{{ url_for('static', filename='app.js') }}"></script>
-</body>
+</div>
 
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
 </html>
