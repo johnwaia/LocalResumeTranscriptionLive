@@ -1,4 +1,4 @@
-# Projet Veille Technologique
+# Création de fiche synthèse suite à une conversation.
 
 Ce projet permet de **créer une fiche projet à partir d'une conversation orale**, avec **transcription en temps réel** et **résumé structuré**.  
 
@@ -41,10 +41,14 @@ Ce projet permet de **créer une fiche projet à partir d'une conversation orale
 
 ### 1. Installer Vosk (transcription)
 
-1. Aller sur [Vosk Models](https://alphacephei.com/vosk/models)  
-2. Télécharger le modèle français :  
-   [vosk-model-small-fr-0.22.zip](https://alphacephei.com/vosk/models/vosk-model-small-fr-0.22.zip)  
+1. Télécharger le modèle français :  
+   version small : [vosk-model-small-fr-0.22.zip](https://alphacephei.com/vosk/models/vosk-model-small-fr-0.22.zip)
+   
+   version large : [vosk-model-large-fr-0.22.zip](https://alphacephei.com/vosk/models/vosk-model-fr-0.22.zip)
+     
 3. Extraire le dossier `vosk-model-small-fr-0.22` dans le projet.
+4. Renommer small : `vosk-model-small-fr`
+5. Renommer large : `vosk-model-large-fr`
 
 ---
 
@@ -124,7 +128,7 @@ python main.py
 ollama serve
 ```
 
-4. Ouvrir le navigateur sur [http://localhost:5000](http://localhost:5000).  
+4. Ouvrir le navigateur sur http://localhost:11434/.  
 
 5. Démarrer une session vocale pour créer la fiche projet en temps réel.
 
