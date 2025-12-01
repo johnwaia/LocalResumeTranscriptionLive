@@ -2,56 +2,73 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>🎙️ Résumé en temps réel</title>
+  <title>Résumé en temps réel</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
 </head>
 
 <body>
 
-<header class="header">
-  <div class="title">🎙️ Live Transcription & Résumé IA</div>
-  <div class="actions">
-    <button id="start-session" class="btn primary">▶️ Démarrer</button>
-    <button id="stop-session" class="btn danger">⛔ Stop</button>
-    <button id="download-summary" class="btn subtle">📥 Exporter</button>
+<h1>🎙️ Résumé en temps réel</h1>
+
+<!-- Boutons gérés uniquement par JS (cachés) -->
+<div style="display:none;">
+  <button id="start-session"></button>
+  <button id="stop-session"></button>
+</div>
+
+<!-- Bouton visible pour exporter -->
+<div class="toolbar">
+  <button id="download-summary">📥 Télécharger Résumé</button>
+</div>
+
+<div class="layout">
+
+  <!-- Colonne gauche : Transcription -->
+  <div class="left">
+    <section class="card">
+      <h2>📝 Transcription</h2>
+      <div id="transcript" class="card-body"></div>
+    </section>
   </div>
-</header>
 
-<main class="grid">
+  <!-- Colonne droite : Résumé -->
+  <div class="right">
+    <section class="card">
+      <h2>📌 Résumé généré</h2>
+      <div id="summary" class="card-body summary-box">
+        <h3 id="summary-title"></h3>
+        <p id="summary-subtitle"></p>
+        <ul id="summary-list"></ul>
+      </div>
+    </section>
+  </div>
 
-  <section class="panel glass">
-    <h2>🟡 Parole détectée</h2>
-    <div id="partial" class="content"></div>
-  </section>
+</div>
 
-  <section class="panel glass">
-    <h2>📝 Transcription complète</h2>
-    <div id="transcript" class="content"></div>
-  </section>
+<!-- Bouton central Play / Pause -->
+<div class="player-bar">
+  <button id="session-toggle" class="session-toggle is-play" aria-label="Démarrer ou mettre en pause la session">
+    <span class="session-icon"></span>
+  </button>
+</div>
 
-  <section class="panel glass large">
-    <h2>📌 Résumé IA</h2>
-    <div id="summary" class="summary-content">
-      <div id="summary-title" class="summary-title"></div>
-      <div id="summary-subtitle" class="summary-subtitle"></div>
-      <ul id="summary-list"></ul>
-    </div>
-  </section>
-</main>
+<!-- Sous-titres en bas (parole détectée en temps réel) -->
+<div class="subtitle-bar">
+  <p id="partial"></p>
+</div>
 
-
-<!-- 🍃 MODAL CHOIX DE MODÈLE -->
+<!-- Popup sélection du modèle -->
 <div id="model-modal" class="modal">
-  <div class="modal-box">
-    <h2>🤖 Choisir le modèle Vosk</h2>
-    <p>Sélectionnez la précision souhaitée :</p>
+  <div class="modal-content">
+    <h2>🎤 Sélection du modèle Vosk</h2>
+    <p>Choisissez le modèle de transcription à utiliser :</p>
 
     <select id="modal-model-select">
-      <option value="vosk-model-small-fr">🚀 Léger (Rapide)</option>
-      <option value="vosk-model-large-fr">🎯 Complet (Précis)</option>
+      <option value="vosk-model-small-fr">Modèle léger (rapide)</option>
+      <option value="vosk-model-large-fr">Modèle complet (plus précis)</option>
     </select>
 
-    <button id="confirm-model" class="btn primary full">Valider</button>
+    <button id="confirm-model">✅ Valider</button>
   </div>
 </div>
 

@@ -1,215 +1,252 @@
-/* ===========================
-   🎨 THEME & BASE STYLES
-=========================== */
-:root {
-  --bg: #f3f5f7;
-  --panel: rgba(255,255,255,0.7);
-  --border: rgba(0,0,0,0.08);
-  --accent: #4b7cff;
-  --danger: #ff4f4f;
-  --text: #2d2d2d;
-  --radius: 14px;
+* {
+  box-sizing: border-box;
 }
 
 body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   margin: 0;
-  padding: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: "Inter", sans-serif;
+  padding: 24px;
+  background: #0f172a; /* fond type player vidéo sombre */
+  color: #e5e7eb;
 }
 
-/* ===========================
-   🧭 HEADER
-=========================== */
-.header {
+/* Titre */
+h1 {
+  text-align: center;
+  margin: 0 0 20px 0;
+  font-size: 26px;
+  font-weight: 700;
+}
+
+/* Toolbar (on peut la garder visible ou la masquer) */
+.toolbar {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 18px 25px;
-  background: white;
-  border-bottom: 1px solid #e5e9f0;
-  font-size: 18px;
-  font-weight: 600;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
-.actions .btn {
-  margin-left: 10px;
-}
-
-/* ===========================
-   🧩 BUTTONS
-=========================== */
-.btn {
-  padding: 10px 16px;
-  border-radius: var(--radius);
+.toolbar button {
+  border-radius: 999px;
   border: none;
+  padding: 8px 14px;
+  font-size: 14px;
   cursor: pointer;
-  font-size: 15px;
-  transition: 0.2s;
 }
 
-.btn.primary {
-  background: var(--accent);
-  color: white;
+/* Si tu veux cacher complètement la toolbar, décommente : */
+/*
+.toolbar {
+  display: none;
 }
+*/
 
-.btn.subtle {
-  background: transparent;
-  border: 2px solid var(--accent);
-  color: var(--accent);
-}
-
-.btn.danger {
-  background: var(--danger);
-  color: white;
-}
-
-.btn:hover {
-  opacity: 0.85;
-}
-
-.btn.full {
-  width: 100%;
-  margin-top: 14px;
-}
-
-/* ===========================
-   📐 GRID LAYOUT
-=========================== */
-.grid {
-  max-width: 1400px;
-  margin: auto;
-  padding: 25px;
+/* Layout principal : 2 cartes côte à côte */
+.layout {
+  max-width: 1200px;
+  margin: 0 auto;
   display: grid;
-  gap: 20px;
-
-  /* 🧠 Nouvelle disposition : résumé à droite */
-  grid-template-columns: 2fr 1.3fr;
-  grid-template-rows: auto 1fr;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 18px;
 }
 
-/* Résumé occupe toute la hauteur */
-.panel.summary {
-  grid-row: span 2;
-  border-left: 2px solid rgba(0,0,0,0.08);
-  padding-left: 24px;
+/* Cartes */
+.card {
+  background: #020617;
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: 0 18px 40px rgba(0,0,0,0.55);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  min-height: 260px;
 }
 
-/* ===========================
-   🪟 PANELS
-=========================== */
-.panel {
-  border-radius: var(--radius);
-  padding: 20px;
+.card h2 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
 }
 
-.glass {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  backdrop-filter: blur(10px);
-  box-shadow: 0px 6px 20px rgba(0,0,0,0.06);
-}
-
-.panel h2 {
-  margin-top: 0;
-}
-
-/* ===========================
-   📝 CONTENT SECTIONS
-=========================== */
-.content {
-  background: white;
-  margin-top: 12px;
-  padding: 12px;
-  min-height: 100px;
-  border-radius: var(--radius);
-  border: 1px solid #e1e1e1;
+.card-body {
+  background: #020617;
+  border-radius: 10px;
+  border: 1px solid rgba(51,65,85,0.8);
+  padding: 10px 12px;
+  min-height: 210px;
   overflow-y: auto;
 }
 
-/* ===========================
-   📌 SUMMARY DESIGN
-=========================== */
-#summary {
-  margin-top: 12px;
+/* Résumé */
+.summary-box h3 {
+  margin: 0 0 4px 0;
+  font-size: 16px;
 }
 
-.summary-title {
-  font-size: 20px;
-  font-weight: 600;
+.summary-box p {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  color: #9ca3af;
 }
 
-.summary-subtitle {
-  opacity: 0.65;
-  margin-bottom: 10px;
+.summary-box ul {
+  margin: 0;
+  padding-left: 18px;
 }
 
-#summary-list li {
-  background: #eef2ff;
-  padding: 8px;
-  border-radius: 10px;
+.summary-box li {
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+
+/* Player central */
+.player-bar {
+  margin-top: 26px;
+  display: flex;
+  justify-content: center;
+}
+
+/* Bouton rond au centre (style lecteur vidéo) */
+.session-toggle {
+  width: 70px;
+  height: 70px;
+  border-radius: 999px;
+  border: none;
+  background: #e11d48;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 16px 40px rgba(248, 113, 113, 0.45);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.session-toggle:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 20px 50px rgba(248, 113, 113, 0.6);
+}
+
+/* Icône play/pause en pur CSS */
+.session-icon {
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+/* État PLAY (triangle) */
+.session-toggle.is-play .session-icon {
+  border-left: 18px solid #f9fafb;
+  border-top: 12px solid transparent;
+  border-bottom: 12px solid transparent;
+}
+
+/* État PAUSE (deux barres) */
+.session-toggle.is-pause .session-icon {
+  width: 18px;
+  height: 20px;
+}
+
+.session-toggle.is-pause .session-icon::before,
+.session-toggle.is-pause .session-icon::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 6px;
+  height: 20px;
+  background: #f9fafb;
+  border-radius: 2px;
+}
+
+.session-toggle.is-pause .session-icon::before {
+  left: 0;
+}
+
+.session-toggle.is-pause .session-icon::after {
+  right: 0;
+}
+
+/* Sous-titres en bas comme une vidéo */
+.subtitle-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 10px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.subtitle-bar p {
+  display: inline-block;
+  max-width: 80%;
+  margin: 0 auto;
+  padding: 6px 14px;
+  background: rgba(15, 23, 42, 0.85);
+  border-radius: 8px;
+  color: #f9fafb;
+  font-size: 14px;
+}
+
+/* Modal sélection modèle */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.modal-content {
+  background: #020617;
+  padding: 20px 18px;
+  border-radius: 14px;
+  width: 320px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+  text-align: center;
+  border: 1px solid rgba(148,163,184,0.45);
+}
+
+.modal-content h2 {
+  margin-top: 0;
   margin-bottom: 6px;
 }
 
-/* ===========================
-   🔳 MODAL
-=========================== */
-.modal {
-  position: fixed;
-  top: 0; 
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0,0,0,0.45);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.modal-content p {
+  margin: 0 0 10px;
+  font-size: 14px;
+  color: #9ca3af;
 }
 
-.modal-box {
-  background: white;
-  padding: 28px;
-  width: 360px;
-  border-radius: var(--radius);
-  text-align: center;
-}
-
-.modal-box select {
+.modal-content select {
   width: 100%;
-  padding: 12px;
-  margin-top: 14px;
-  font-size: 16px;
-  border-radius: var(--radius);
+  padding: 8px;
+  margin: 8px 0 14px;
+  border-radius: 8px;
+  border: 1px solid #4b5563;
+  background: #020617;
+  color: #e5e7eb;
 }
 
-/* ===========================
-   ⏳ LOADING SCREEN
-=========================== */
-.loading-overlay {
-  position: fixed;
-  top: 0; 
-  left: 0;
-  width: 100vw; 
-  height: 100vh;
-  background: rgba(255,255,255,0.92);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-  backdrop-filter: blur(6px);
+.modal-content button {
+  width: 100%;
+  padding: 8px 0;
+  border-radius: 999px;
+  border: none;
+  background: #2563eb;
+  color: #f9fafb;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-.spinner {
-  width: 55px;
-  height: 55px;
-  border: 6px solid #d1d5db;
-  border-top: 6px solid var(--accent);
-  border-radius: 50%;
-  animation: spin 1s infinite linear;
-}
+/* Responsive */
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
 
-@keyframes spin {
-  0% { transform: rotate(0); }
-  100% { transform: rotate(360deg); }
+  .right {
+    margin-top: 14px;
+  }
+
+  .subtitle-bar p {
+    max-width: 95%;
+  }
 }

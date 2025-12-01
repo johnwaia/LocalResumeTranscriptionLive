@@ -25,6 +25,33 @@ source.onmessage = (event) => {
   }
 };
 
+// --- Bouton central Play / Pause qui pilote start/stop ---
+const sessionToggle = document.getElementById("session-toggle");
+const sessionIcon = document.querySelector(".session-icon");
+const startBtn = document.getElementById("start-session");
+const stopBtn = document.getElementById("stop-session");
+
+let sessionRunning = false;
+
+if (sessionToggle && startBtn && stopBtn) {
+  sessionToggle.addEventListener("click", () => {
+    if (!sessionRunning) {
+      // démarrer la session
+      startBtn.click();
+      sessionToggle.classList.remove("is-play");
+      sessionToggle.classList.add("is-pause");
+      sessionRunning = true;
+    } else {
+      // arrêter la session
+      stopBtn.click();
+      sessionToggle.classList.remove("is-pause");
+      sessionToggle.classList.add("is-play");
+      sessionRunning = false;
+    }
+  });
+}
+
+
 
 // --------- MODAL LOGIQUE ---------
 const modal = document.getElementById("model-modal");
