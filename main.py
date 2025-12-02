@@ -5,6 +5,7 @@ import queue
 import json
 import time
 import re
+import os
 
 from stt_vosk import stt_loop, get_current_text, reset_transcript, set_model_path
 from ollama_client import update_structured_summary
@@ -60,13 +61,22 @@ def stop_session():
 
 
 @app.route("/model/set", methods=["POST"])
-def change_model():
+def select_model():
+    data = request.json
+    model_name = data.get("model")
 
-    new_model = request.json["model"]
-    shared_state.current_model_path = new_model
-    shared_state.model_ready = True
+    if not model_name:
+        return jsonify({"error": "Aucun modèle reçu"}), 400
 
-    print(f"🆕 Modèle sélectionné → {new_model}")
+    model_path = f"models/{model_name}"
+
+    if not os.path.exists(model_path):
+        print(f"❌ Modèle introuvable : {model_path}")
+        return jsonify({"error": "Modèle introuvable"}), 500
+
+    set_model_path(model_path)
+    print(f"📁 MODELS PATH = {model_path}")
+
     return jsonify({"status": "ok"})
 
 def summarizer_loop():
