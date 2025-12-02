@@ -133,6 +133,8 @@ ollama serve
 5. Démarrer une session vocale pour créer la fiche projet en temps réel.
 
 ---
+## Choix du Modèle Vosk
+![Choix du Modèle Vosk](assets/image/screen1.png)
 
 ## Interface principale
 ![Interface principale](assets/image/screen.png)
