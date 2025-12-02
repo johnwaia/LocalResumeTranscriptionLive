@@ -134,6 +134,9 @@ ollama serve
 
 ---
 
+## Interface principale
+![Interface principale](assets/image/screen.png)
+
 ## Notes
 
 - Le résumé JSON reste valide même si la conversation est longue.
