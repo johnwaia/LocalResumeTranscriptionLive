@@ -10,16 +10,17 @@
 
 <h1>🎙️ Résumé en temps réel</h1>
 
-<!-- Boutons gérés uniquement par JS (cachés) -->
+<!-- Boutons backend (non visibles) -->
 <div style="display:none;">
   <button id="start-session"></button>
   <button id="stop-session"></button>
 </div>
 
-<!-- Bouton visible pour exporter -->
+<!-- Barre d'outils (export résumé) -->
 <div class="toolbar">
   <button id="download-summary">📥 Télécharger Résumé</button>
 </div>
+
 
 <div class="layout">
 
@@ -35,6 +36,7 @@
   <div class="right">
     <section class="card">
       <h2>📌 Résumé généré</h2>
+
       <div id="summary" class="card-body summary-box">
         <h3 id="summary-title"></h3>
         <p id="summary-subtitle"></p>
@@ -52,16 +54,19 @@
   </button>
 </div>
 
-<!-- Sous-titres en bas (parole détectée en temps réel) -->
+<!-- Sous-titres -->
 <div class="subtitle-bar">
   <p id="partial"></p>
 </div>
 
-<!-- Popup sélection du modèle -->
+
+<!-- ------------------------------ -->
+<!-- ⚙️ POPUP SÉLECTION MODELE VOSK -->
+<!-- ------------------------------ -->
 <div id="model-modal" class="modal">
   <div class="modal-content">
     <h2>🎤 Sélection du modèle Vosk</h2>
-    <p>Choisissez le modèle de transcription à utiliser :</p>
+    <p>Choisissez le modèle de transcription :</p>
 
     <select id="modal-model-select">
       <option value="vosk-model-small-fr">Modèle léger (rapide)</option>
@@ -72,6 +77,49 @@
   </div>
 </div>
 
+
+<!-- ------------------------------ -->
+<!-- 🔄 LOADER CHARGEMENT MODELE -->
+<!-- ------------------------------ -->
+<div id="model-loading-overlay" style="
+    position: fixed; 
+    top: 0; left: 0;
+    width: 100%; 
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(3px);
+    display: none;
+    z-index: 9999;
+
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    color: white;
+    font-family: Arial;
+">
+    <div style="margin-bottom: 15px; font-size: 22px;">
+        ⏳ Chargement du modèle, veuillez patienter...
+    </div>
+
+    <div class="loader-bar" style="
+        width: 300px;
+        height: 10px;
+        background: #444;
+        border-radius: 6px;
+        overflow: hidden;
+    ">
+        <div id="loader-progress" style="
+            width: 0%;
+            height: 100%;
+            background: #4caf50;
+            transition: width 0.2s;
+        "></div>
+    </div>
+</div>
+
+
+<!-- JS -->
 <script src="{{ url_for('static', filename='app.js') }}"></script>
+
 </body>
 </html>

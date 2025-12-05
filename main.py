@@ -1,25 +1,17 @@
-from flask import Flask, render_template, Response, request, jsonify
-from flask_cors import CORS
-import threading
-import queue
-import json
-import time
-import re
 import os
+import time
+import json
+from flask import Flask, render_template, request, jsonify, Response
+from flask_cors import CORS
 
-from stt_vosk import stt_loop, get_current_text, reset_transcript, set_model_path
 from ollama_client import update_structured_summary
-import shared_state 
+from shared_state import shared_state
+from stt_vosk import load_model, start_stt, stop_stt
 
 app = Flask(__name__)
 CORS(app)
 
-events_queue: "queue.Queue" = queue.Queue()
-
-current_summary = {"title": "", "subtitle": "", "bullets": []}
-
-summarizer_busy = False
-session_reset_requested = False
+print("🧠 Vosk en attente du modèle utilisateur...")
 
 
 @app.route("/")
@@ -27,83 +19,79 @@ def index():
     return render_template("index.html")
 
 
-def event_stream():
-    while True:
-        yield f"data: {json.dumps(events_queue.get(), ensure_ascii=False)}\n\n"
-
-
-@app.route("/stream")
-def stream():
-    return Response(event_stream(), mimetype="text/event-stream")
-
-
-@app.route("/session/start", methods=["POST"])
-def start_session():
-    global current_summary, session_reset_requested
-
-    reset_transcript()
-    current_summary = {"title": "", "subtitle": "", "bullets": []}
-
-    shared_state.session_active = True
-    session_reset_requested = True
-
-    events_queue.put({"type": "session", "status": "started"})
-    return jsonify({"status": "ok"})
-
-
-@app.route("/session/stop", methods=["POST"])
-def stop_session():
-
-    shared_state.session_active = False
-    events_queue.put({"type": "session", "status": "stopped"})
-    return jsonify({"status": "ok"})
-
-
-
+# ------------- API : Sélection modèle ---------------- #
 @app.route("/model/set", methods=["POST"])
-def select_model():
+def set_model():
     data = request.json
     model_name = data.get("model")
 
-    if not model_name:
-        return jsonify({"error": "Aucun modèle reçu"}), 400
+    model_path = os.path.join("models", model_name)
 
-    model_path = f"models/{model_name}"
+    print(f"📥 Chargement du modèle : {model_name}")
+    print(f"📁 Modèle défini : {model_path}")
 
-    if not os.path.exists(model_path):
-        print(f"❌ Modèle introuvable : {model_path}")
-        return jsonify({"error": "Modèle introuvable"}), 500
+    try:
+        load_model(model_path)
+        return jsonify({"status": "ok"})
+    except Exception as e:
+        print(f"❌ Erreur chargement modèle : {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
 
-    set_model_path(model_path)
-    print(f"📁 MODELS PATH = {model_path}")
 
-    return jsonify({"status": "ok"})
+# ------------- API : Lancer STT ---------------- #
+@app.route("/session/start", methods=["POST"])
+def start_session():
+    shared_state.reset()
+    start_stt()
+    return jsonify({"status": "started"})
 
-def summarizer_loop():
-    global current_summary, summarizer_busy, session_reset_requested
 
-    last_text = ""
-    while True:
-        if not shared_state.session_active:
-            time.sleep(0.2)
-            continue
+# ------------- API : Arrêter STT ---------------- #
+@app.route("/session/stop", methods=["POST"])
+def stop_session():
+    stop_stt()
+    return jsonify({"status": "stopped"})
 
-        live = get_current_text()
 
-        if live and live.strip() != last_text.strip() and not summarizer_busy:
-            last_text = live
-            summarizer_busy = True
+# ----------- API : STREAMING SSE (transcription temps réel) ----------- #
+@app.route("/stream")
+def stream():
+    def event_stream():
+        while True:
+            data = shared_state.get_for_stream()
+            yield f"data: {json.dumps(data)}\n\n"
+            time.sleep(0.1)
 
-            current_summary = update_structured_summary(current_summary, live)
+    return Response(event_stream(), mimetype="text/event-stream")
 
-            events_queue.put({"type": "summary_structured", "summary": current_summary})
-            summarizer_busy = False
+# ------------------------ API RÉSUMÉ ------------------------ #
 
-        time.sleep(1)
 
+@app.route("/summary/update", methods=["POST"])
+def update_summary():
+    text = request.json.get("text", "").strip()
+    if not text:
+        return jsonify({"error": "Aucune transcription fournie"}), 400
+
+    print(f"📄 Résumé demandé pour : {text[:80]} ...")
+
+    try:
+        # Résumé précédent (ou {} si vide)
+        previous = shared_state.summary or {}
+
+        # Nouveau résumé structuré
+        new_summary = update_structured_summary(previous, text)
+
+        # On stocke le résumé mis à jour
+        shared_state.summary = new_summary
+
+        print("📘 Résumé mis à jour :", new_summary)
+
+        return jsonify({"summary": new_summary})
+
+    except Exception as e:
+        print("❌ Erreur résumé :", e)
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    threading.Thread(target=stt_loop, args=(events_queue,), daemon=True).start()
-    threading.Thread(target=summarizer_loop, daemon=True).start()
-
-    app.run(host="0.0.0.0", port=5000, debug=True, threaded=True, use_reloader=False)
+    app.run(debug=True, host="0.0.0.0", port=5000)

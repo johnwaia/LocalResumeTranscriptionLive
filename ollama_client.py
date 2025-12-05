@@ -1,122 +1,109 @@
-# ollama_client.py
 import requests
 import json
 import re
 
 OLLAMA_URL = "http://localhost:11434/api/chat"
-MODEL = "llama3"  # adapte si tu utilises un autre modèle
+MODEL = "llama3.2:1b"
 
 
-def _extract_json_block(raw: str) -> str:
+def _extract_json_block(text: str) -> str:
     """
-    Essaie de récupérer un bloc JSON même si Ollama
-    renvoie du texte autour ou des ```json ... ```.
+    Extrait proprement le JSON même si Ollama renvoie du texte autour.
+    Supporte:
+    - ```json ... ```
+    - texte avant/après
+    - contenu bavard
     """
-    # Enlever les fences ```json ... ```
-    fence = re.search(r"```(?:json)?(.*)```", raw, flags=re.DOTALL | re.IGNORECASE)
-    if fence:
-        raw = fence.group(1).strip()
+    if not text:
+        raise ValueError("Réponse Ollama vide.")
 
-    raw = raw.strip()
+    cleaned = text.strip()
 
-    if raw.startswith("{"):
-        return raw
+    # Retirer les backticks CODEBLOCKS
+    cleaned = re.sub(r"```json", "", cleaned, flags=re.IGNORECASE)
+    cleaned = cleaned.replace("```", "").strip()
 
-    start = raw.find("{")
-    end = raw.rfind("}")
-    if start != -1 and end != -1 and end > start:
-        return raw[start : end + 1]
+    # Trouver le premier { et le dernier }
+    start = cleaned.find("{")
+    end = cleaned.rfind("}")
 
-    return raw
+    if start == -1 or end == -1:
+        raise ValueError("Aucun bloc JSON valide trouvé dans la réponse Ollama.")
+
+    return cleaned[start:end+1]
 
 
 def update_structured_summary(previous_summary: dict, transcript: str) -> dict:
-    """
-    Met à jour un résumé structuré :
-      {
-        "title": "Titre court",
-        "subtitle": "Sous-titre",
-        "bullets": ["point 1", "point 2", ...]
-      }
-
-    - previous_summary : dict (peut être vide au début)
-    - transcript       : transcription (complète ou partielle)
-    """
     transcript = (transcript or "").strip()
     if not transcript:
         return previous_summary or {
             "title": "",
             "subtitle": "",
-            "bullets": [],
+            "bullets": []
         }
 
     system_prompt = (
         "Tu résumes une conversation orale EN FRANÇAIS.\n"
-        "Tu dois renvoyer STRICTEMENT un JSON valide, sans texte autour.\n\n"
-        "Format JSON attendu :\n"
+        "RENVOIE EXCLUSIVEMENT un JSON VALIDE, sans aucun texte avant ni après.\n"
+        "FORMAT STRICT OBLIGATOIRE :\n"
         "{\n"
-        '  \"title\": \"Titre court et informatif\",\n'
-        '  \"subtitle\": \"Sous-titre qui précise le contexte ou l\'objectif\",\n'
-        '  \"bullets\": [\n'
-        '    \"Premier point important\", \n'
-        '    \"Deuxième point important\", \n'
-        "    ...\n"
-        "  ]\n"
-        "}\n\n"
-        "Toujours en français. PAS D'ANGLAIS."
+        '  \"title\": \"Titre court\",\n'
+        '  \"subtitle\": \"Sous-titre\",\n'
+        '  \"bullets\": [\"• point 1\", \"• point 2\"]\n'
+        "}\n"
+        "Ne parle pas, ne commente pas, ne mets PAS de ```.\n"
     )
 
     if previous_summary:
-        prev_json = json.dumps(previous_summary, ensure_ascii=False)
-        user_content = (
-            "Voici le résumé structuré ACTUEL (au format JSON) :\n"
-            f"{prev_json}\n\n"
-            "Voici la transcription ACTUELLE de la conversation (peut être partielle) :\n"
+        previous_json_str = json.dumps(previous_summary, ensure_ascii=False)
+        user_msg = (
+            "Résumé précédent :\n"
+            f"{previous_json_str}\n\n"
+            "Nouveau texte à intégrer :\n"
             f"{transcript}\n\n"
-            "Mets à jour le résumé structuré en respectant le format JSON demandé."
+            "Mets à jour CE RÉSUMÉ UNIQUEMENT. Ne renvoie que du JSON strict."
         )
     else:
-        user_content = (
-            "Voici une transcription de conversation (peut être partielle) :\n"
+        user_msg = (
+            "Texte à résumer :\n"
             f"{transcript}\n\n"
-            "Crée un premier résumé structuré en respectant le format JSON demandé."
+            "Renvoie un JSON strict conforme au format demandé."
         )
 
     payload = {
         "model": MODEL,
         "messages": [
             {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_content},
+            {"role": "user", "content": user_msg}
         ],
-        "stream": False,  # pas de streaming : on garde le résumé précédent jusqu'à la nouvelle version complète
+        "stream": False
     }
 
     try:
         resp = requests.post(OLLAMA_URL, json=payload, timeout=60)
         resp.raise_for_status()
         data = resp.json()
-        raw = data.get("message", {}).get("content", "").strip()
 
-        print("\n=== RAW OLLAMA SUMMARY ===")
+        raw = data.get("message", {}).get("content", "")
+        print("\n=== RAW OLLAMA RESPONSE ===")
         print(raw)
         print("=== END RAW ===\n")
 
-        json_block = _extract_json_block(raw)
-        parsed = json.loads(json_block)
+        json_str = _extract_json_block(raw)
+        parsed = json.loads(json_str)
 
+        # normalisation
         title = str(parsed.get("title", "")).strip()
         subtitle = str(parsed.get("subtitle", "")).strip()
         bullets_raw = parsed.get("bullets", [])
 
         bullets = []
         if isinstance(bullets_raw, list):
-            for b in bullets_raw:
-                if isinstance(b, str):
-                    txt = b.strip()
-                    if txt:
-                        bullets.append(txt)
+            for item in bullets_raw:
+                if isinstance(item, str) and item.strip():
+                    bullets.append(item.strip())
 
-        # On fusionne intelligemment avec l'ancien résumé si besoin
+        # Fusion intelligente
         if previous_summary:
             if not title:
                 title = previous_summary.get("title", "")
@@ -126,16 +113,45 @@ def update_structured_summary(previous_summary: dict, transcript: str) -> dict:
                 bullets = previous_summary.get("bullets", [])
 
         return {
-            "title": title or "Résumé de la conversation",
+            "title": title or "Résumé",
             "subtitle": subtitle or "",
             "bullets": bullets,
         }
 
     except Exception as e:
-        print("Erreur update_structured_summary:", e)
-        # En cas d'erreur : on garde l'ancien résumé
+        print("❌ Erreur parsing JSON Ollama :", e)
         return previous_summary or {
-            "title": "Résumé de la conversation",
+            "title": "Résumé",
             "subtitle": "",
-            "bullets": [],
+            "bullets": []
         }
+
+import requests
+
+def summarize_text(text):
+    payload = {
+        "model": "llama3",
+        "prompt": f"Résumé en JSON strict :\n{text}\n\nFORMAT JSON : {{\"title\":\"\",\"subtitle\":\"\",\"bullets\":[\"...\"]}}"
+    }
+
+    r = requests.post("http://localhost:11434/api/generate", json=payload)
+    raw_text = r.text
+
+    print("\n=== RAW OLLAMA RESPONSE ===")
+    print(raw_text)
+    print("=== END RAW ===\n")
+
+    json_data = _extract_json_block(raw_text)
+
+    if json_data is None:
+        return {"title": "", "subtitle": "", "bullets": []}
+
+    # Normalisation du résultat (certains modèles renvoient "bullets" comme objets)
+    bullets = json_data.get("bullets", [])
+    bullets = [b if isinstance(b, str) else b.get("text", "") for b in bullets]
+
+    return {
+        "title": json_data.get("title", ""),
+        "subtitle": json_data.get("subtitle", ""),
+        "bullets": bullets
+    }

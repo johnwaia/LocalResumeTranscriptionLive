@@ -106,10 +106,10 @@ pip install numpy
 
 1. Télécharger Ollama pour Windows : [https://ollama.com/download](https://ollama.com/download)  
 2. Installer et ouvrir le terminal.  
-3. Télécharger le modèle `llama3` :
+3. Télécharger le modèle `llama3.2:1b` :
 
 ```powershell
-ollama pull llama3
+ollama pull llama3.2:1b
 ```
 
 ---
