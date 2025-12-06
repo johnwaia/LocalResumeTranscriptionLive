@@ -136,6 +136,9 @@ ollama serve
 ## Choix du Modèle Vosk
 ![Choix du Modèle Vosk](assets/image/screen1.png)
 
+## Chargement du modèle
+![Chargement du modèle](assets/image/screen2.png)
+
 ## Interface principale
 ![Interface principale](assets/image/screen.png)
 
