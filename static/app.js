@@ -6,10 +6,11 @@ const btnDownload = document.getElementById("download-summary");
 const partialBox = document.getElementById("partial");
 const transcriptBox = document.getElementById("transcript");
 
-// Modal
 const modal = document.getElementById("model-modal");
 const confirmModelBtn = document.getElementById("confirm-model");
 const modelSelect = document.getElementById("modal-model-select");
+
+const voiceAnim = document.getElementById("voice-anim"); // Animation bars
 
 // Loader overlay
 const loaderOverlay = document.getElementById("model-loading-overlay");
@@ -20,30 +21,30 @@ const loaderProgress = document.getElementById("loader-progress");
 // =========================
 let sessionActive = false;
 let eventSource = null;
+let audioContext = null;
+let analyser = null;
+let microphoneStream = null;
 
-// 🔥 Anti-doublons transcript final
-let lastFinal = "";
+let lastFinal = ""; // anti-duplicates
 
 // =========================
-// 1) OUVERTURE DU MODAL AU DEMARRAGE
+// 1) SHOW MODEL PICKER ON LOAD
 // =========================
 window.onload = () => {
     modal.style.display = "flex";
 };
 
-
 // =========================
-// 2) CHOIX DU MODELE
+// 2) LOAD MODEL
 // =========================
 confirmModelBtn.onclick = async () => {
-
     const modelName = modelSelect.value;
-    modal.style.display = "none";
 
+    modal.style.display = "none";
     loaderOverlay.style.display = "flex";
     loaderProgress.style.width = "0%";
 
-    // Simule l’avancement visuel du chargement
+    // Fake loading bar animation
     let fakeProgress = 0;
     const interval = setInterval(() => {
         fakeProgress += 5;
@@ -62,105 +63,140 @@ confirmModelBtn.onclick = async () => {
         clearInterval(interval);
 
         if (!res.ok) {
-            alert("❌ Le backend a refusé le modèle : " + data.message);
-            loaderProgress.style.width = "0%";
+            alert("❌ Erreur : " + data.message);
             loaderOverlay.style.display = "none";
             modal.style.display = "flex";
             return;
         }
 
         loaderProgress.style.width = "100%";
-        setTimeout(() => loaderOverlay.style.display = "none", 400);
+        setTimeout(() => loaderOverlay.style.display = "none", 300);
 
     } catch (err) {
         clearInterval(interval);
         loaderOverlay.style.display = "none";
-        alert("Erreur réseau lors du chargement du modèle.");
+        alert("Erreur réseau.");
     }
 };
 
-
 // =========================
-// 3) DEMARRER / STOPPER SESSION
+// 3) START / STOP SESSION
 // =========================
 btnToggle.onclick = async () => {
-
-    // STOP
     if (sessionActive) {
+        stopVoiceAnimation();
+        stopAudioLevelListener();
         await fetch("/session/stop", { method: "POST" });
-        btnToggle.classList.remove("is-pause");
-        btnToggle.classList.add("is-play");
+
         sessionActive = false;
+        btnToggle.classList.add("is-play");
+        btnToggle.classList.remove("is-pause");
 
         if (eventSource) eventSource.close();
         return;
     }
 
-    // START
+    // START SESSION
     const res = await fetch("/session/start", { method: "POST" });
     const data = await res.json();
 
     if (data.status === "started") {
+        sessionActive = true;
         btnToggle.classList.remove("is-play");
         btnToggle.classList.add("is-pause");
-        sessionActive = true;
 
-        // Reset anti-doublons
         lastFinal = "";
         transcriptBox.textContent = "";
 
         startStream();
+        startVoiceAnimation();      // 👈 animation ON
+        startAudioLevelListener();  // 👈 sync animation with mic volume
     }
 };
 
-
 // =========================
-// 4) STREAM DES DONNÉES (instantané)
+// 4) STREAM TRANSCRIPT
 // =========================
 function startStream() {
     if (eventSource) eventSource.close();
-
     eventSource = new EventSource("/stream");
 
     eventSource.onmessage = (event) => {
         let packet;
         try {
             packet = JSON.parse(event.data);
-        } catch (e) {
-            console.warn("Données SSE invalides :", event.data);
+        } catch {
             return;
         }
 
         const partial = packet.partial || "";
         const finalText = packet.final || "";
 
-        // Affichage du texte partiel
         partialBox.textContent = partial;
 
-        // 🔥 Anti-duplication du texte final
         if (finalText && finalText !== lastFinal) {
             transcriptBox.textContent += finalText + " ";
             lastFinal = finalText;
-
-            // Envoi du texte cumulatif pour résumé
             updateSummary(transcriptBox.textContent);
         }
-
     };
 
-    eventSource.onerror = () => {
-        console.log("SSE stream error");
-    };
+    eventSource.onerror = () => console.log("SSE stream error");
 }
 
+// =========================
+// 5) MICRO VOLUME → ANIMATION BARS
+// =========================
+function startAudioLevelListener() {
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+        audioContext = new AudioContext();
+        analyser = audioContext.createAnalyser();
+        microphoneStream = audioContext.createMediaStreamSource(stream);
+
+        analyser.fftSize = 256;
+        microphoneStream.connect(analyser);
+
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+        function update() {
+            if (!sessionActive) return;
+            analyser.getByteFrequencyData(dataArray);
+
+            const volume = dataArray.reduce((a, b) => a + b) / dataArray.length;
+
+            // Map volume → bar height
+            const scaled = Math.min(100, Math.max(5, volume / 2));
+
+            voiceAnim.style.transform = `scaleY(${scaled / 30})`;
+
+            requestAnimationFrame(update);
+        }
+        update();
+    });
+}
+
+function stopAudioLevelListener() {
+    if (audioContext) {
+        audioContext.close();
+        audioContext = null;
+    }
+}
 
 // =========================
-// 5) Export résumé (placeholder)
+// 6) ANIMATION STATE
 // =========================
-btnDownload.onclick = () => {
-    alert("Fonction d’export non implémentée ici.");
-};
+function startVoiceAnimation() {
+    voiceAnim.classList.remove("hidden");
+}
 
+function stopVoiceAnimation() {
+    voiceAnim.classList.add("hidden");
+    voiceAnim.style.transform = "scaleY(1)";
+}
+
+// =========================
+// 7) UPDATE SUMMARY
+// =========================
 async function updateSummary(fullText) {
     try {
         const res = await fetch("/summary/update", {
@@ -170,23 +206,15 @@ async function updateSummary(fullText) {
         });
 
         const data = await res.json();
-
-        // ⚠️ correct : le backend renvoie { summary: { ... } }
         const summary = data.summary;
+        if (!summary) return;
 
-        if (!summary) {
-            console.log("⚠️ Pas de résumé renvoyé");
-            return;
-        }
-
-        // Affichage du titre et sous-titre
         document.getElementById("summary-title").textContent =
             summary.title || "";
 
         document.getElementById("summary-subtitle").textContent =
             summary.subtitle || "";
 
-        // Affichage des puces
         const ul = document.getElementById("summary-list");
         ul.innerHTML = "";
 
@@ -197,7 +225,11 @@ async function updateSummary(fullText) {
         });
 
     } catch (err) {
-        console.log("⚠️ Erreur MAJ résumé :", err);
+        console.log("Résumé error:", err);
     }
 }
 
+// =========================
+// 8) Placeholder export
+// =========================
+btnDownload.onclick = () => alert("Export PDF en cours d’implémentation.");

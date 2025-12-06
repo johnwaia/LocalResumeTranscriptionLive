@@ -47,6 +47,14 @@
 
 </div>
 
+<div id="voice-anim" class="hidden">
+    <div class="bar"></div>
+    <div class="bar"></div>
+    <div class="bar"></div>
+    <div class="bar"></div>
+    <div class="bar"></div>
+</div>
+
 <!-- Bouton central Play / Pause -->
 <div class="player-bar">
   <button id="session-toggle" class="session-toggle is-play" aria-label="Démarrer ou mettre en pause la session">
@@ -68,12 +76,12 @@
     <h2>🎤 Sélection du modèle Vosk</h2>
     <p>Choisissez le modèle de transcription :</p>
 
-    <select id="modal-model-select">
+    <select id="modal-model-select" class="model-select">
       <option value="vosk-model-small-fr">Modèle léger (rapide)</option>
       <option value="vosk-model-large-fr">Modèle complet (plus précis)</option>
     </select>
 
-    <button id="confirm-model">✅ Valider</button>
+    <button id="confirm-model" class="confirm-btn">✅ Valider</button>
   </div>
 </div>
 

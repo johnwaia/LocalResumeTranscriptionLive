@@ -22,6 +22,7 @@ def load_model(model_path):
 
     shared_state.model_loaded = True
     shared_state.current_model_path = model_path
+
     print("🎤 Modèle chargé avec succès.")
 
 
@@ -70,7 +71,7 @@ def audio_callback(indata, frames, time, status):
     if status:
         print("⚠ Status audio:", status)
 
-    # Convertit le buffer CFFI → bytes Python
+    # Conversion correcte → évite erreur CFFI
     pcm_bytes = bytes(indata)
 
     if recognizer.AcceptWaveform(pcm_bytes):
